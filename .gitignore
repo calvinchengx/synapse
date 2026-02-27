@@ -1,0 +1,23 @@
+# Binary
+synapse
+
+# Coverage
+coverage.out
+coverage.html
+
+# Frontend build output (rebuilt by make frontend)
+internal/web/dist/
+!internal/web/dist/stub.html
+
+# Frontend dependencies
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
