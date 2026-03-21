@@ -1,0 +1,38 @@
+tools:
+  - id: rtk
+    name: RTK
+    description: Command output compressor — reduces LLM token usage by 60-90%
+    homepage: https://github.com/rtk-ai/rtk
+    detection:
+      binary: rtk
+      dataFiles:
+        - linux: "~/.local/share/rtk/tracking.db"
+          darwin: "~/Library/Application Support/rtk/tracking.db"
+          windows: "%APPDATA%/rtk/tracking.db"
+    capabilities:
+      - token-savings
+      - command-compression
+    dataEndpoints:
+      - id: history
+        type: sqlite
+
+  - id: agentsview
+    name: AgentsView
+    description: Session analytics viewer for AI coding agents
+    homepage: https://github.com/wesm/agentsview
+    detection:
+      binary: agentsview
+      dataFiles:
+        - path: "~/.agentsview/agentsview.db"
+      ports:
+        - 58080
+    capabilities:
+      - session-analytics
+      - tool-taxonomy
+    dataEndpoints:
+      - id: sessions-db
+        type: sqlite
+        path: "~/.agentsview/agentsview.db"
+      - id: rest-api
+        type: http
+        baseUrl: "http://localhost:58080"
