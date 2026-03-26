@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "synapse-backend",
+      "runtimeExecutable": "go",
+      "runtimeArgs": ["run", "./cmd/synapse", "serve", "--port", "8090"],
+      "port": 8090
+    },
+    {
+      "name": "synapse-frontend",
+      "runtimeExecutable": "make",
+      "runtimeArgs": ["frontend-dev"],
+      "port": 5173
+    }
+  ]
+}
