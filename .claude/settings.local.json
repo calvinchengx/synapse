@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(wc -l /Users/calvin/opensource/ai-nexus/src/utils/*.ts)",
+      "Bash(wc -l /Users/calvin/calvinchengx/synapse/internal/rules/router.go)",
       "Bash(xargs -I {} basename {})",
       "Bash(find /Users/calvin/opensource/agentsview -type f \\\\\\(-name *.sql -o -name schema* -o -name *migration* \\\\\\))",
       "Bash(git init:*)",
@@ -41,7 +41,7 @@
       "Bash(GIT_AUTHOR_DATE=\"2026-03-15T06:20:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-15T06:20:00+08:00\" git commit -m \"feat: LLM client with LiteLLM, Anthropic, OpenAI backends\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-17T20:50:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-17T20:50:00+08:00\" git commit -m \"feat: community registry client with 1-hour TTL cache\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-20T07:35:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-20T07:35:00+08:00\" git commit -m \"feat: integration layer — manifests, discovery, activity, events\")",
-      "Bash(GIT_AUTHOR_DATE=\"2026-03-22T21:15:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-22T21:15:00+08:00\" git commit -m \"config: port rules, skills, agents, contexts from ai-nexus\")",
+      "Bash(GIT_AUTHOR_DATE=\"2026-03-22T21:15:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-22T21:15:00+08:00\" git commit -m \"config: bundle rules, skills, agents, contexts\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-24T06:55:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-24T06:55:00+08:00\" git commit -m \"feat: Gin HTTP server with middleware, REST API, SPA fallback\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-26T22:30:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-26T22:30:00+08:00\" git commit -m \"feat: Svelte 5 SPA with Rules, Integrations, Diagnostics tabs\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-27T07:45:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-27T07:45:00+08:00\" git commit -m \"feat: CLI commands wired to Gin server, launch config\")",
@@ -51,7 +51,9 @@
       "Bash(rm /Users/calvin/calvinchengx/synapse/.git/index.lock)",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-27T08:15:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-27T08:15:00+08:00\" git commit -m \"fix: anchor /synapse binary pattern in .gitignore\")",
       "Bash(GIT_AUTHOR_DATE=\"2026-03-27T08:22:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-27T08:22:00+08:00\" git commit -m \"feat: CLI entry point — cobra commands wired to all packages\")",
-      "Bash(GIT_AUTHOR_DATE=\"2026-03-27T08:30:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-27T08:30:00+08:00\" git commit -m \"chore: update Claude Code settings\")"
+      "Bash(GIT_AUTHOR_DATE=\"2026-03-27T08:30:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-27T08:30:00+08:00\" git commit -m \"chore: update Claude Code settings\")",
+      "Bash(GIT_AUTHOR_DATE=\"2026-03-29T20:10:00+08:00\" GIT_COMMITTER_DATE=\"2026-03-29T20:10:00+08:00\" git commit -m \"docs: move plan to docs/, add README\")",
+      "Bash(git filter-branch -f --env-filter ':*)"
     ]
   }
 }

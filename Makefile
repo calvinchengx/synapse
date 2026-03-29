@@ -50,8 +50,31 @@ coverage: ensure-embed-dir
 lint:
 	golangci-lint run ./...
 
+# User documentation (MkDocs Material). Requires: uv (https://docs.astral.sh/uv/)
+docs:
+	uv run --group docs mkdocs build
+
+docs-serve:
+	uv run --group docs mkdocs serve
+
 clean:
 	rm -f synapse coverage.out coverage.html
 	rm -rf internal/web/dist
 
-.PHONY: ensure-embed-dir frontend dev frontend-dev build build-release test test-v coverage lint clean
+help:
+	@echo "Synapse — available targets:"
+	@echo "  make build           Debug binary (stub frontend if no npm build yet)"
+	@echo "  make build-release   Release binary: npm build + stripped Go binary"
+	@echo "  make dev             Run synapse serve with stub frontend"
+	@echo "  make frontend        npm install + build; copy dist into internal/web"
+	@echo "  make frontend-dev    Vite dev server (use alongside make dev)"
+	@echo "  make test            Run tests (-race)"
+	@echo "  make test-v          Verbose tests"
+	@echo "  make coverage        Tests + coverage.html"
+	@echo "  make lint            golangci-lint"
+	@echo "  make docs            MkDocs build (needs uv)"
+	@echo "  make docs-serve      MkDocs live server"
+	@echo "  make clean           Remove synapse binary, coverage artifacts, web dist"
+	@echo "  make ensure-embed-dir  Ensure internal/web/dist exists for embed"
+
+.PHONY: help ensure-embed-dir frontend dev frontend-dev build build-release test test-v coverage lint docs docs-serve clean

@@ -1,0 +1,114 @@
+# Build release binaries with `make build-release` and publish a GitHub Release.
+#
+# Trigger: push a version tag, e.g.
+#   git tag -a v1.2.3 -m "Release v1.2.3"
+#   git push origin v1.2.3
+#
+# Requires: repo Settings → Actions → General → Workflow permissions:
+#   "Read and write permissions" (so GITHUB_TOKEN can create releases).
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: make build-release
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: make build-release
+
+      - name: Package
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          BASENAME="synapse_${TAG}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            # Cross-compile often writes `-o synapse` as `synapse` (no .exe) on Unix hosts.
+            if [ -f synapse.exe ]; then
+              mv synapse.exe "${BASENAME}.exe"
+            else
+              test -f synapse
+              mv synapse "${BASENAME}.exe"
+            fi
+            zip -q "${BASENAME}.zip" "${BASENAME}.exe"
+            echo "path=${BASENAME}.zip" >> "$GITHUB_OUTPUT"
+          else
+            test -f synapse
+            chmod +x synapse
+            mv synapse "${BASENAME}"
+            tar czf "${BASENAME}.tar.gz" "${BASENAME}"
+            echo "path=${BASENAME}.tar.gz" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synapse-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ${{ steps.package.outputs.path }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: SHA256 checksums
+        working-directory: dist
+        run: |
+          shopt -s nullglob
+          assets=( *.tar.gz *.zip )
+          sha256sum "${assets[@]}" | sort -k2 > checksums-sha256.txt
+          test -s checksums-sha256.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*
+          generate_release_notes: true

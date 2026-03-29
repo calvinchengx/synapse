@@ -4,7 +4,7 @@
 
 A Go CLI + embedded Svelte web UI that manages rules/skills for AI coding assistants and connects independent tools (RTK, AgentsView, and others) into a unified workflow.
 
-**Full rewrite of [ai-nexus](https://github.com/JSK9999/ai-nexus) in Go**, with a new integration layer for third-party tool orchestration.
+**Implemented in Go**, with an integration layer for third-party tool orchestration.
 
 ---
 
@@ -14,13 +14,12 @@ These local repositories serve as reference implementations throughout this plan
 
 | Source | Path | Purpose |
 |--------|------|---------|
-| **ai-nexus** | `~/opensource/ai-nexus` | Original Node.js implementation being ported — semantic router, rule engine, config structure |
 | **AgentsView** | `~/opensource/agentsview` | Go + embedded Svelte reference — build pipeline, `go:embed` pattern, middleware, SQLite schema |
 | **RTK** | `~/opensource/rtk` | Rust CLI with SQLite tracking — database schema for token savings integration |
 
 ---
 
-## Why Rewrite in Go?
+## Why golang?
 
 - **Single binary deployment** — no Node.js runtime required. Same pattern as AgentsView and RTK.
 - **Native SQLite** — `modernc.org/sqlite` (pure Go, no CGO) for reading RTK and AgentsView databases.
@@ -127,11 +126,11 @@ synapse/
 │       └── embed.go               # //go:embed all:dist
 │
 ├── config/
-│   ├── rules/                     # Ported from ai-nexus config/rules/
-│   ├── skills/                    # Ported from ai-nexus config/skills/
-│   ├── commands/                  # Ported from ai-nexus config/commands/
-│   ├── agents/                    # Ported from ai-nexus config/agents/
-│   ├── contexts/                  # Ported from ai-nexus config/contexts/
+│   ├── rules/                     # Bundled rule library
+│   ├── skills/                    # Bundled skills
+│   ├── commands/                  # Bundled commands
+│   ├── agents/                    # Bundled agents
+│   ├── contexts/                  # Bundled contexts
 │   ├── integrations/
 │   │   └── integrations.yaml      # Built-in manifests for RTK + AgentsView
 │   └── templates/                 # Project templates (basic, node-express, react-nextjs)
@@ -175,36 +174,30 @@ synapse/
 
 ---
 
-## Feature Parity with ai-nexus
+## CLI command map
 
-All ai-nexus features, rewritten in Go:
+### Core rule management
 
-### Core Rule Management
+| Synapse command | Implementation |
+|-----------------|----------------|
+| `synapse init` | `internal/rules/installer.go` |
+| `synapse init -i` | Interactive wizard via charmbracelet/huh |
+| `synapse update` | `internal/rules/installer.go` |
+| `synapse list` | `internal/rules/scanner.go` |
+| `synapse add <url>` | `internal/rules/registry.go` + git clone |
+| `synapse remove <source>` | Remove source + cleanup |
+| `synapse search <keyword>` | `internal/rules/registry.go` |
+| `synapse test <prompt>` | `internal/rules/router.go` |
+| `synapse doctor` | `cmd/synapse/` + integration checks |
+| `synapse browse` | `internal/server/` + embedded Svelte |
+| `synapse get <file>` | Download single rule from registry |
+| `synapse uninstall` | Remove all synapse-managed files |
 
-| ai-nexus Command | Synapse Command | Implementation |
-|------------------|-----------------|----------------|
-| `ai-nexus init` | `synapse init` | `internal/rules/installer.go` |
-| `ai-nexus install` | `synapse init -i` | Interactive wizard via charmbracelet/huh |
-| `ai-nexus update` | `synapse update` | `internal/rules/installer.go` |
-| `ai-nexus list` | `synapse list` | `internal/rules/scanner.go` |
-| `ai-nexus add <url>` | `synapse add <url>` | `internal/rules/registry.go` + git clone |
-| `ai-nexus remove <source>` | `synapse remove <source>` | Remove source + cleanup |
-| `ai-nexus search <keyword>` | `synapse search <keyword>` | `internal/rules/registry.go` |
-| `ai-nexus test <prompt>` | `synapse test <prompt>` | `internal/rules/router.go` |
-| `ai-nexus doctor` | `synapse doctor` | `cmd/synapse/` + integration checks |
-| `ai-nexus browse` | `synapse browse` | `internal/server/` + embedded Svelte |
-| `ai-nexus get <file>` | `synapse get <file>` | Download single rule from registry |
-| `ai-nexus uninstall` | `synapse uninstall` | Remove all synapse-managed files |
+### Semantic router (Go)
 
-### Semantic Router (Go-Native Rewrite)
+Earlier stacks often combined a **Node-based Claude Code hook** with a separate router implementation. That split adds a Node runtime on the hot path. Synapse implements routing in Go end-to-end:
 
-The ai-nexus semantic router lives in two files:
-- `config/hooks/semantic-router.cjs` (315 lines) — Claude Code hook, runs on `UserPromptSubmit`
-- `src/utils/semantic-router.ts` (415 lines) — TypeScript implementation with keyword maps
-
-**The CJS hook is a Node.js dependency that contradicts our "no runtime dependencies" goal.** Synapse replaces it entirely:
-
-#### What the CJS Hook Does (ai-nexus behavior)
+#### What the legacy CJS hook did (behavior Synapse replaces)
 
 1. Receives prompt from stdin (Claude Code passes `{ "prompts": [{"content": "..."}] }`)
 2. Scans `~/.claude/rules/` and `~/.claude/rules-inactive/` for `.md` files
@@ -244,9 +237,9 @@ The `synapse hook` command:
 
 Uses the same router logic for interactive testing without modifying files.
 
-#### Porting the Keyword Map
+#### Keyword map
 
-The ai-nexus keyword map (`src/utils/semantic-router.ts` lines 249-317) contains 80+ keyword-to-file mappings including Korean language support. This is ported to a Go map:
+The router maintains 80+ keyword-to-file mappings, including Korean language support, in a Go map:
 
 ```go
 // internal/rules/router.go
@@ -265,7 +258,7 @@ var keywordMap = map[string][]string{
 
 #### Tier 3 (New): Integration Signals
 
-Synapse adds a third routing tier that ai-nexus doesn't have — querying RTK's command history for project-specific signals:
+Synapse adds a third routing tier: querying RTK's command history for project-specific signals:
 - Project has heavy `cargo test` → load `rust.md` + `testing.md`
 - Project has heavy `docker-compose` → load `docker.md`
 - Project has no test commands → deprioritize `testing.md`
@@ -281,7 +274,7 @@ Synapse adds a third routing tier that ai-nexus doesn't have — querying RTK's 
 ### Metadata & Change Detection
 
 - `~/.synapse/meta.json` — installation metadata, sources, file hashes, timestamps
-- MD5 hashing for user-edit detection (same as ai-nexus)
+- MD5 hashing for user-edit detection
 - Non-destructive updates: never overwrite user-modified files without confirmation
 
 ---
@@ -1132,17 +1125,15 @@ tests/e2e_test.go                      # Full CLI command tests
 - [ ] `CLAUDE.md` for AI assistants working on this repo
 - [ ] **Gate: `make test` passes, `make build` produces binary**
 
-### Phase 2: Rule Engine (ai-nexus parity)
+### Phase 2: Rule Engine
 
-This is the largest phase. It ports the entire ai-nexus rule engine to Go. Break it into sub-phases that each end with passing tests.
+This is the largest phase: implement the full rule engine in Go. Break it into sub-phases that each end with passing tests.
 
 #### Phase 2a: Scanner + Engine
 
-Port file discovery and rule loading from ai-nexus.
+Implement file discovery and rule loading.
 
-Reference files:
-- `~/opensource/ai-nexus/src/utils/config-scanner.ts` — directory scanning logic
-- `~/opensource/ai-nexus/src/utils/files.ts` — file hashing, comparison, frontmatter parsing
+Reference concepts: directory scanning, file hashing, frontmatter parsing, non-destructive updates.
 
 Tasks:
 - [ ] `internal/rules/scanner.go` — recursive `.md` file discovery in `config/` directories
@@ -1156,11 +1147,9 @@ Tasks:
 
 #### Phase 2b: Semantic Router
 
-Port the two-tier routing strategy from ai-nexus and add Tier 3 integration signals.
+Implement LLM + keyword routing and add Tier 3 integration signals.
 
-Reference files:
-- `~/opensource/ai-nexus/config/hooks/semantic-router.cjs` — hook implementation (315 lines)
-- `~/opensource/ai-nexus/src/utils/semantic-router.ts` — TypeScript router (415 lines, 80+ keyword map)
+Reference concepts: Claude Code hook stdin JSON, active/inactive rule directories, keyword fallback maps.
 
 Tasks:
 - [ ] `internal/llm/types.go` — Message, CompletionRequest, CompletionResponse types (OpenAI-compatible)
@@ -1170,8 +1159,8 @@ Tasks:
   - Returns structured `ExternalError` on failure
 - [ ] `internal/llm/client_test.go` — test with `httptest.NewServer` mocks for each provider, test timeout/retry behavior
 - [ ] `internal/rules/router.go` — three-tier semantic router:
-  - **Tier 1 (AI-based):** Build prompt with rule metadata (filename + description + keywords), send to LLM, parse JSON array response of selected filenames. Prompt template ported from ai-nexus CJS hook.
-  - **Tier 2 (Keyword fallback):** Port the 80+ keyword map from `semantic-router.ts`. Match prompt words (case-insensitive) against map keys and frontmatter keywords. Includes Korean language keywords.
+  - **Tier 1 (AI-based):** Build prompt with rule metadata (filename + description + keywords), send to LLM, parse JSON array response of selected filenames. Prompt template aligned with the Claude Code hook contract.
+  - **Tier 2 (Keyword fallback):** 80+ keyword map in Go. Match prompt words (case-insensitive) against map keys and frontmatter keywords. Includes Korean language keywords.
   - **Tier 3 (Integration signals):** Query RTK command history for project to infer technology stack. (Implemented in Phase 3, interface defined here.)
   - Always include `always_active` rules from config (default: `essential.md`, `security.md`)
   - Return `RouterResult{Selected []Rule, Method string, Tier int}`
@@ -1184,11 +1173,9 @@ Tasks:
 
 #### Phase 2c: Installer + Deploy
 
-Port the file installation and multi-tool deployment logic.
+Implement file installation and multi-tool deployment logic.
 
-Reference files:
-- `~/opensource/ai-nexus/src/utils/files.ts` — hash comparison, file copying, non-destructive updates
-- `~/opensource/ai-nexus/bin/ai-nexus.cjs` — CLI command implementations
+Reference concepts: hash comparison, file copying, non-destructive updates, CLI orchestration.
 
 Tasks:
 - [ ] `internal/rules/installer.go` — init, update, add, remove, get, uninstall flows:
@@ -1222,8 +1209,7 @@ Tasks:
 
 Wire everything together via the CLI.
 
-Reference files:
-- `~/opensource/ai-nexus/bin/ai-nexus.cjs` — Commander.js CLI definitions
+Reference patterns: subcommand-per-feature CLI (e.g. cobra), HTTP-backed registry client.
 
 Tasks:
 - [ ] `internal/rules/registry.go` — GitHub API client for community rules:
@@ -1250,11 +1236,11 @@ Tasks:
   - `synapse test "write a react component"` → verify rule selection
 - [ ] **Gate: full `make test` passes, `synapse init && synapse list` works end-to-end**
 
-#### Phase 2e: Port Config Directory
+#### Phase 2e: Config directory
 
-Copy and validate the ai-nexus rule/skill/command/agent/context files.
+Copy and validate bundled rule, skill, command, agent, and context files.
 
-Reference: `~/opensource/ai-nexus/config/`
+Reference: `config/` in this repository.
 
 Tasks:
 - [ ] Port `config/rules/` — 25+ base rules (commit, testing, security, performance, etc.)

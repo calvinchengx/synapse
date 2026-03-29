@@ -44,7 +44,7 @@ type Rule struct {
 type Frontmatter struct {
 	Description string   `yaml:"description"`
 	Keywords    []string `yaml:"keywords"`
-	Tools       string   `yaml:"tools"` // comma-separated string (ai-nexus format)
+	Tools       string   `yaml:"tools"` // comma-separated string in frontmatter
 	Model       string   `yaml:"model"`
 	Category    string   `yaml:"category"`
 	Name        string   `yaml:"name"`

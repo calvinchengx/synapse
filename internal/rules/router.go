@@ -227,7 +227,7 @@ func (r *Router) buildResult(always, selected []Rule, alwaysSet map[string]bool,
 }
 
 // keywordMap maps prompt keywords to relevant rule filenames.
-// Ported from ai-nexus src/utils/semantic-router.ts.
+// Keyword routing and tier fallbacks for the semantic router.
 var keywordMap = map[string][]string{
 	// Frontend
 	"react":       {"react.md", "frontend.md"},
@@ -339,7 +339,7 @@ var keywordMap = map[string][]string{
 	"fix":         {"debugging.md"},
 	"troubleshoot": {"debugging.md"},
 
-	// Korean keywords (from ai-nexus)
+	// Korean keywords
 	"리액트":      {"react.md", "frontend.md"},
 	"테스트":      {"testing.md"},
 	"보안":        {"security.md"},

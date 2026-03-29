@@ -1,0 +1,47 @@
+site_name: Synapse
+site_description: Documentation for the Synapse CLI and web UI
+# Project site URL when hosted on GitHub Pages (<user>.github.io/<repo>/)
+site_url: https://calvinchengx.github.io/synapse/
+repo_url: https://github.com/calvinchengx/synapse
+repo_name: calvinchengx/synapse
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.expand
+    - navigation.sections
+    - content.code.copy
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - tables
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Getting started: getting-started.md
+  - Configuration: configuration.md
+  - CLI reference: cli-reference.md
+  - Internal:
+      - Architecture & plan: PLAN.md
+
+plugins:
+  - search
+
+strict: false

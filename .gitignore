@@ -21,3 +21,9 @@ frontend/dist/
 .vscode/
 *.swp
 *.swo
+
+# Python / uv (docs toolchain)
+.venv/
+
+# MkDocs
+/site
