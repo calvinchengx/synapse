@@ -31,26 +31,20 @@ These local repositories serve as reference implementations throughout this plan
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                        Synapse                            │
-│                                                           │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐ │
-│  │ Rule Engine  │  │ Integration  │  │   Gin HTTP      │ │
-│  │             │  │   Layer      │  │  + Svelte SPA   │ │
-│  │ - rules     │  │             │  │                  │ │
-│  │ - skills    │  │ - manifests │  │ - /api/rules    │ │
-│  │ - commands  │  │ - discovery │  │ - /api/integrate│ │
-│  │ - agents    │  │ - data      │  │ - /api/status   │ │
-│  │ - contexts  │  │ - events    │  │ - /api/search   │ │
-│  │ - router    │  │             │  │ - SSE events    │ │
-│  └─────────────┘  └──────────────┘  └─────────────────┘ │
-│                                                           │
-│  Reads from:                  Writes to:                  │
-│  ├── RTK SQLite (readonly)   ├── ~/.synapse/             │
-│  ├── AgentsView SQLite (ro)  ├── .claude/ .cursor/ .codex│
-│  └── AgentsView REST API     └── activity.jsonl           │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph syn["Synapse"]
+        direction LR
+        RE["Rule Engine<br/>────────────<br/>rules, skills, commands<br/>agents, contexts, router"]
+        IL["Integration Layer<br/>────────────<br/>manifests, discovery<br/>data, events"]
+        WEB["Gin HTTP + Svelte SPA<br/>────────────<br/>/api/rules, /api/integrate<br/>/api/status, /api/search<br/>SSE events"]
+    end
+    subgraph io[" "]
+        direction LR
+        R["Reads from<br/>────────────<br/>RTK SQLite (readonly)<br/>AgentsView SQLite (ro)<br/>AgentsView REST API"]
+        W["Writes to<br/>────────────<br/>~/.synapse/<br/>.claude/ · .cursor/ · .codex<br/>activity.jsonl"]
+    end
+    syn --> io
 ```
 
 ---
